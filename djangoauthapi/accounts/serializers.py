@@ -24,8 +24,9 @@ class UserSerializer(serializers.ModelSerializer):
         validated_data.pop('password2')
         return User.objects.create_user(**validated_data)
 
-class UserLoginSerializer(serializers.ModelSerializer):
+class UserLoginSerializer(serializers.Serializer):
     email=serializers.CharField(max_length=255)
+    password = serializers.CharField(style={'input_type': 'password'}, write_only=True)
     class Meta:
         model=User
         fields= ["email","password"]
