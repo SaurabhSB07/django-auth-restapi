@@ -1,10 +1,11 @@
 from rest_framework.response import Response  
 from rest_framework.views import APIView
-from .serializers import UserSerializer,UserLoginSerializer
+from .serializers import UserSerializer,UserLoginSerializer,UserProfileSerializer
 from django.contrib.auth import authenticate
 from .rendrers import UserRenderer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import AuthenticationFailed
+from rest_framework.permissions import IsAuthenticated
 
 
 def get_tokens_for_user(user):
@@ -49,3 +50,12 @@ class UserLoginView(APIView):
                 return Response({
                     "errors": {"non_field_errors": ["Email or password is incorrect"]}
                 }, status=400)
+            
+class UserProfileView(APIView):
+    renderer_classes = [UserRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        serializer = UserProfileSerializer(request.user)
+        return Response(serializer.data, status=200)      
+ 
