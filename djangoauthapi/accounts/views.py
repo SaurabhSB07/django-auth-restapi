@@ -3,6 +3,24 @@ from rest_framework.views import APIView
 from .serializers import UserSerializer,UserLoginSerializer
 from django.contrib.auth import authenticate
 from .rendrers import UserRenderer
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import AuthenticationFailed
+
+
+def get_tokens_for_user(user):
+    from rest_framework_simplejwt.tokens import RefreshToken
+    from rest_framework_simplejwt.exceptions import AuthenticationFailed
+
+    if not user.is_active:
+        raise AuthenticationFailed("User is not active")
+
+    refresh = RefreshToken.for_user(user)
+
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+
 
 
 class UserRegistrationView(APIView):
@@ -10,8 +28,9 @@ class UserRegistrationView(APIView):
     def post(self, request, format=None):
         serializer = UserSerializer(data=request.data) 
         if serializer.is_valid():
-            serializer.save()
-            return Response({'msg': 'Registration successful'})
+            user=serializer.save()
+            token=get_tokens_for_user(user)
+            return Response({'token':token,'msg': 'Registration successful'})
         return Response(serializer.errors, status=400)
     
 class UserLoginView(APIView):
@@ -24,7 +43,8 @@ class UserLoginView(APIView):
 
             user = authenticate(email=email, password=password)  
             if user is not None:
-                return Response({'msg': 'Login successful'})
+                token=get_tokens_for_user(user)
+                return Response({'msg': 'Login successful','token':token})
             else:
                 return Response({
                     "errors": {"non_field_errors": ["Email or password is incorrect"]}
