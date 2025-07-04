@@ -74,3 +74,10 @@ class UserChagePasswordResetEmailView(APIView):
         data=request.data, context={"uid": request.user, "token": request.user})  
         serializer.is_valid(raise_exception=True)
         return Response({"msg":"Password reset link is sent to your email , kindly check your email"})
+    
+class UserPasswordResetView(APIView):
+  renderer_classes = [UserRenderer]
+  def post(self, request, uid, token, format=None):
+    serializer = UserPasswordResetSerializer(data=request.data, context={'uid':uid, 'token':token})
+    serializer.is_valid(raise_exception=True)
+    return Response({'msg':'Password Reset Successfully'}, status=status.HTTP_200_OK)    
