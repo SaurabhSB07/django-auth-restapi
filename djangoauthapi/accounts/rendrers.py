@@ -1,17 +1,10 @@
-from django.core.mail import EmailMessage
-import os
+from rest_framework import renderers
 
-class Util:
-    @staticmethod
-    def send_email(data):
-        try:
-            email = EmailMessage(
-                subject=data['subject'],
-                body=data['body'],
-                from_email=os.environ.get('EMAIL_FROM'),
-                to=[data['to_email']]
-            )
-            email.send(fail_silently=False)
-        except Exception as e:
-            print(f"Failed to send email: {e}")
-            raise
+class UserRenderer(renderers.JSONRenderer):
+    charset = 'utf-8'
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        response = renderer_context.get('response') if renderer_context else None
+        if response is not None and not (200 <= response.status_code < 300):
+            data = {'errors': data}
+        return super().render(data, accepted_media_type, renderer_context)
